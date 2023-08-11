@@ -3,6 +3,7 @@ import { getDataFromApi } from "./apiQuery.js";
 import SimpleLightbox from "/node_modules/simplelightbox/dist/simple-lightbox.esm";
 import _ from "lodash";
 
+// most elements link set
 const elementsSet = {
     cardContainer: document.querySelector('.gallery'),
     formElement: document.querySelector('.search-form'), 
@@ -18,17 +19,16 @@ const elementsSet = {
 };
 
 function autoScroll(data) {
-
-  document.querySelector(data).scrollIntoView({
+  // get first card on page and set her to top
+   document.getElementById(data).scrollIntoView({
     block: "start",
     behavior: "smooth",
   });
-
 }
 
 // "data.totalHits" control
 function loadPagesControl(data) {
-
+  
   //if the request data is repeate
   if(elementsSet.checkData === data) {
 
@@ -57,6 +57,7 @@ function loadPagesControl(data) {
     elementsSet.key = true;
     elementsSet.pageCounter = 1;
     elementsSet.checkData = data;
+    elementsSet.cardContainer.innerHTML = "";
   }
 
   return elementsSet.key;
@@ -67,9 +68,11 @@ function request(data) {
   // "data.totalHits" control
   let viewKey = loadPagesControl(data);
 
+  //'viewKey' - dont't output content, if when total quantity loaded images >= "data.totalHits" 
+  // and output content, if < "data.totalHits"
   if(viewKey) {
     getDataFromApi(data, elementsSet.pageCounter).then(responce => {
-
+      
       if(responce.data.hits.length !== 0) {
 
         if(elementsSet.pageCounter === 1) {
@@ -82,52 +85,53 @@ function request(data) {
         
         const markup = responce.data.hits.reduce((result, { webformatURL, largeImageURL, id, tags, likes, views, comments, downloads }) => {
 
-            return result + `<div class="photo-card" id="hit-${id}">
+            return result + `<div class="photo-card" id="hit${id}">
             <a class="gallery__link" href="${largeImageURL}">
               <img src="${webformatURL}" alt="${tags}" loading="lazy" />
             </a>
             <div class="info">
               <div class="info-cell>
-                <t class="info-item">
+                <h class="info-item">
                   <b>Likes</b>
-                </t>
+                </h>
                 <p>${likes}</p>
               </div>
               <div class="info-cell>
-                <t class="info-item">
+                <h class="info-item">
                   <b>Views</b>
-                </t>
+                </h>
               <p>${views}</p>
               </div>
               <div class="info-cell>
-                <t class="info-item">
+                <h class="info-item">
                   <b>Comments</b>
-                </t>
+                </h>
                 <p>${comments}</p>
               </div>  
               <div class="info-cell>
-                <t class="info-item">
+                <h class="info-item">
                   <b>Downloads</b>
-                </t>
+                </h>
                 <p>${downloads}</p>
               </div>  
             </div>
           </div>`;
         }, ""); 
-        elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
         
+        elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
         
         // create lightbox
         const gallery = new SimpleLightbox(".gallery a", {   
           captionsData: "alt",
           captionDelay: 250,
         });
-     
-        autoScroll(`"#hit-${responce.data.hits[0].id}"`);
+      
+        // auto scroll pages
+        autoScroll(`hit${responce.data.hits[0].id}`);
 
         return;
       } 
-
+      gallery.close();
       elementsSet.cardContainer.innerHTML = "";
       Notiflix.Notify.warning("Sorry, there are no images matching your search query. Please try again.");
     }).catch(() => {
@@ -135,7 +139,6 @@ function request(data) {
     });
   }
 }
-
 
 function eventForm(evt) {
 
@@ -148,8 +151,17 @@ function eventForm(evt) {
     // elementsSet.inputForm.value = "";
     request(elementsSet.inputData);
   }
+ 
+}
+
+function eventScroll() {
+  
+    if ((window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight) {
+      request(elementsSet.inputData);
+    }
   
 }
 
 elementsSet.inputForm.addEventListener('input', _.debounce(eventForm, 500));
 elementsSet.buttonForm.addEventListener('click', eventForm);
+document.addEventListener("scroll",  _.debounce(eventScroll, 300));
