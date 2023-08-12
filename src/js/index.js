@@ -16,6 +16,7 @@ const elementsSet = {
     totalH: 0,
     fillingLevel: 0,
     key: true,
+    keyCreateInstance: false,
 };
 
 function autoScroll(data) {
@@ -63,8 +64,7 @@ function loadPagesControl(data) {
   return elementsSet.key;
 }
 
-function request(data) {
-
+async function request(data) {
   // "data.totalHits" control
   let viewKey = loadPagesControl(data);
 // create lightbox
@@ -73,7 +73,7 @@ function request(data) {
   // and output content, if < "data.totalHits"
   if(viewKey) {
    
-    getDataFromApi(data, elementsSet.pageCounter).then(responce => {
+    await getDataFromApi(data, elementsSet.pageCounter).then(responce => {
       
       if(responce.data.hits.length !== 0) {
 
@@ -123,11 +123,13 @@ function request(data) {
         elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
 
         if(elementsSet.pageCounter > 1) {
+          elementsSet.keyCreateInstance = false;
           gallery.refresh();
         }
 
         autoScroll(`hit${responce.data.hits[0].id}`);
-       
+        elementsSet.keyCreateInstance = true;
+
         return;
       } 
     
@@ -136,11 +138,16 @@ function request(data) {
       Notiflix.Notify.warning(error.message);
     });
   }
-  // create instance of SimpleLightbox
-  const gallery = new SimpleLightbox(".gallery a", {   
-    captionsData: "alt",
-    captionDelay: 250,
-  });
+
+  if(elementsSet.keyCreateInstance) {
+    // create instance of SimpleLightbox
+    const gallery = new SimpleLightbox(".gallery a", {   
+      captionsData: "alt",
+      captionDelay: 250,
+    });
+
+  }
+
 }
 
 function eventForm(evt) {
