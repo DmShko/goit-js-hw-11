@@ -40,7 +40,7 @@ function loadPagesControl(data) {
       elementsSet.pageCounter += 1;
       // total quantity loaded images (40 images on page)
       elementsSet.fillingLevel = 40 * elementsSet.pageCounter;
-
+     
     }
     // control, when total quantity loaded images >= "data.totalHits"
     if(elementsSet.fillingLevel >= elementsSet.totalH) {
@@ -67,10 +67,12 @@ function request(data) {
 
   // "data.totalHits" control
   let viewKey = loadPagesControl(data);
+// create lightbox
 
   //'viewKey' - dont't output content, if when total quantity loaded images >= "data.totalHits" 
   // and output content, if < "data.totalHits"
   if(viewKey) {
+   
     getDataFromApi(data, elementsSet.pageCounter).then(responce => {
       
       if(responce.data.hits.length !== 0) {
@@ -82,7 +84,7 @@ function request(data) {
           Notiflix.Notify.info(`Hooray! We found ${responce.data.totalHits} images.`);
 
         }
-        
+  
         const markup = responce.data.hits.reduce((result, { webformatURL, largeImageURL, id, tags, likes, views, comments, downloads }) => {
 
             return result + `<div class="photo-card" id="hit${id}">
@@ -119,23 +121,25 @@ function request(data) {
         }, ""); 
         
         elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
-        
-        // create lightbox
+
+        // if(elementsSet.pageCounter > 1) {
+        //   gallery.refresh();
+        //   return;
+        // }
+
         const gallery = new SimpleLightbox(".gallery a", {   
           captionsData: "alt",
           captionDelay: 250,
         });
-      
-        // auto scroll pages
-        autoScroll(`hit${responce.data.hits[0].id}`);
 
+        autoScroll(`hit${responce.data.hits[0].id}`);
+       
         return;
       } 
-      gallery.close();
-      elementsSet.cardContainer.innerHTML = "";
+    
       Notiflix.Notify.warning("Sorry, there are no images matching your search query. Please try again.");
-    }).catch(() => {
-      Notiflix.Notify.warning(error);
+    }).catch(error => {
+      Notiflix.Notify.warning(error.message);
     });
   }
 }
@@ -163,5 +167,23 @@ function eventScroll() {
 }
 
 elementsSet.inputForm.addEventListener('input', _.debounce(eventForm, 500));
-elementsSet.buttonForm.addEventListener('click', eventForm);
+elementsSet.buttonForm.addEventListener('click', _.throttle(eventForm, 300));
 document.addEventListener("scroll",  _.debounce(eventScroll, 300));
+
+elementsSet.buttonForm.addEventListener('mouseover', (e) =>{
+  e.target.classList.toggle("changeBackBut");
+  elementsSet.formElement.classList.toggle("changeBackForm");
+});
+
+elementsSet.buttonForm.addEventListener('mouseout', (e) =>{
+  e.target.classList.toggle("changeBackBut");
+  elementsSet.formElement.classList.toggle("changeBackForm");
+});
+
+elementsSet.buttonForm.addEventListener('mousedown', (e) =>{
+  e.target.style.borderStyle = "ridge";
+});
+
+elementsSet.buttonForm.addEventListener('mouseup', (e) =>{
+  e.target.style.borderStyle = "none";
+});
