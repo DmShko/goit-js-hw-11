@@ -122,15 +122,9 @@ function request(data) {
         
         elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
 
-        // if(elementsSet.pageCounter > 1) {
-        //   gallery.refresh();
-        //   return;
-        // }
-
-        const gallery = new SimpleLightbox(".gallery a", {   
-          captionsData: "alt",
-          captionDelay: 250,
-        });
+        if(elementsSet.pageCounter > 1) {
+          gallery.refresh();
+        }
 
         autoScroll(`hit${responce.data.hits[0].id}`);
        
@@ -142,6 +136,11 @@ function request(data) {
       Notiflix.Notify.warning(error.message);
     });
   }
+  // create instance of SimpleLightbox
+  const gallery = new SimpleLightbox(".gallery a", {   
+    captionsData: "alt",
+    captionDelay: 250,
+  });
 }
 
 function eventForm(evt) {
