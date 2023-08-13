@@ -17,6 +17,8 @@ const elementsSet = {
     fillingLevel: 0,
     key: true,
     keyCreateInstance: false,
+    simpleArray: {},
+    scrollValue: 0,
 };
 
 function autoScroll(data) {
@@ -58,6 +60,7 @@ function loadPagesControl(data) {
     elementsSet.key = true;
     elementsSet.pageCounter = 1;
     elementsSet.checkData = data;
+    elementsSet.scrollValue = 0;
     elementsSet.cardContainer.innerHTML = "";
   }
 
@@ -123,13 +126,15 @@ async function request(data) {
         elementsSet.cardContainer.insertAdjacentHTML('beforeend', markup);
 
         if(elementsSet.pageCounter > 1) {
-          elementsSet.keyCreateInstance = false;
-          gallery.refresh();
+          
+          // elementsSet.keyCreateInstance = false;
+          elementsSet.simpleArray.instance.destroy();
+          // delete elementsSet.simpleArray.instance;
         }
-
+    
         autoScroll(`hit${responce.data.hits[0].id}`);
-        elementsSet.keyCreateInstance = true;
-
+        // elementsSet.keyCreateInstance = true;
+        
         return;
       } 
     
@@ -139,14 +144,16 @@ async function request(data) {
     });
   }
 
-  if(elementsSet.keyCreateInstance) {
+  // if(elementsSet.keyCreateInstance) {
     // create instance of SimpleLightbox
     const gallery = new SimpleLightbox(".gallery a", {   
       captionsData: "alt",
       captionDelay: 250,
     });
 
-  }
+    elementsSet.simpleArray.instance = gallery;
+    // console.log(elementsSet.simpleArray);
+  // }
 
 }
 
@@ -166,13 +173,14 @@ function eventForm(evt) {
 
 function eventScroll() {
   
-    if ((window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight) {
+    elementsSet.scrollValue = window.innerHeight + Math.round(window.scrollY);
+    if ((elementsSet.scrollValue) >= document.body.offsetHeight) {
       request(elementsSet.inputData);
     }
   
 }
 
-elementsSet.inputForm.addEventListener('input', _.debounce(eventForm, 500));
+elementsSet.inputForm.addEventListener('input', _.debounce(eventForm, 300, {'leading': true}));
 elementsSet.buttonForm.addEventListener('click', _.throttle(eventForm, 300));
 document.addEventListener("scroll",  _.debounce(eventScroll, 300));
 
