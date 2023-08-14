@@ -12,9 +12,11 @@ const elementsSet = {
     galleryElement: document.querySelector('img'),
     inputData: "",
     checkData: "",
-    pageCounter: 1,
+    pageCounter: 0,
     totalH: 0,
-    fillingLevel: 0,
+    quantityCard: 40,
+    temporary: undefined,
+    fillingLevel: function () { return Math.floor(this.totalH / this.quantityCard)},
     key: true,
     keyCreateInstance: false,
     simpleArray: {},
@@ -42,19 +44,32 @@ function loadPagesControl(data) {
       // counter loaded pages
       elementsSet.pageCounter += 1;
       // total quantity loaded images (40 images on page)
-      elementsSet.fillingLevel = 40 * elementsSet.pageCounter;
-     
+      // elementsSet.fillingLevel = Math.floor(elementsSet.totalH / elementsSet.quantityCard);
+      
     }
-    // control, when total quantity loaded images >= "data.totalHits"
-    if(elementsSet.fillingLevel >= elementsSet.totalH) {
+    
+    // add one itteration
+    if(elementsSet.pageCounter === elementsSet.fillingLevel() + 1) {
 
+      // temporery value for 63's row
+      elementsSet.temporary = elementsSet.fillingLevel() + 1;
+      elementsSet.quantityCard = elementsSet.totalH - elementsSet.quantityCard * elementsSet.fillingLevel();
+      
+    }
+
+        // control, when total quantity loaded images >= "data.totalHits"
+    if(elementsSet.pageCounter > elementsSet.temporary) {
+  
+      elementsSet.quantityCard = 40;
       // reset property and output notification
       checkData = 0;
       elementsSet.key = false;
       Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+      elementsSet.simpleArray.instance.destroy();
 
     } 
   }
+  
   // if the request data isn't repeate
   else {
     elementsSet.key = true;
@@ -74,9 +89,9 @@ async function request(data) {
 
   //'viewKey' - dont't output content, if when total quantity loaded images >= "data.totalHits" 
   // and output content, if < "data.totalHits"
-  if(viewKey) {
+  if(viewKey && elementsSet.quantityCard !== 0) {
    
-    await getDataFromApi(data, elementsSet.pageCounter).then(responce => {
+    await getDataFromApi(data, elementsSet.pageCounter, elementsSet.quantityCard).then(responce => {
       
       if(responce.data.hits.length !== 0) {
 
@@ -95,7 +110,7 @@ async function request(data) {
               <img src="${webformatURL}" alt="${tags}" loading="lazy" />
             </a>
             <div class="info">
-              <div class="info-cell>
+              <div class="info-f>
                 <h class="info-item">
                   <b>Likes</b>
                 </h>
@@ -134,7 +149,7 @@ async function request(data) {
     
         autoScroll(`hit${responce.data.hits[0].id}`);
         // elementsSet.keyCreateInstance = true;
-        
+       
         return;
       } 
     
@@ -159,16 +174,30 @@ async function request(data) {
 
 function eventForm(evt) {
 
-  if(evt.target.getAttribute('type') === 'text'){
-    elementsSet.inputData = evt.target.value;
-  }
+  evt.preventDefault();
   
+  // input event
+  if(evt.target.getAttribute('type') === 'text'){
+   
+      elementsSet.inputData = evt.target.value;
+   
+  } 
+  
+  // button event
   if(evt.target.getAttribute('type') === 'submit'){
-    evt.preventDefault();
-    // elementsSet.inputForm.value = "";
-    request(elementsSet.inputData);
+    // validation
+    if(elementsSet.inputData !== "" && (!elementsSet.inputData.includes(" "))) {
+     
+      // elementsSet.inputForm.value = "";
+      request(elementsSet.inputData);
+
+    } else {
+
+      Notiflix.Notify.warning("Input must be filled and don't have spaces!");
+
+    }
+        
   }
- 
 }
 
 function eventScroll() {
