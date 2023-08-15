@@ -34,6 +34,7 @@ function autoScroll(data) {
 // "data.totalHits" control
 function loadPagesControl(data) {
   
+  elementsSet.quantityCard = 40;
   //if the request data is repeate
   if(elementsSet.checkData === data) {
 
@@ -49,30 +50,43 @@ function loadPagesControl(data) {
     }
     
     // add one itteration
-    if(elementsSet.pageCounter === elementsSet.fillingLevel() + 1) {
+    if(elementsSet.pageCounter === elementsSet.fillingLevel() + 1 && elementsSet.totalH > elementsSet.quantityCard) {
 
       // temporery value for 63's row
       elementsSet.temporary = elementsSet.fillingLevel() + 1;
       elementsSet.quantityCard = elementsSet.totalH - elementsSet.quantityCard * elementsSet.fillingLevel();
       
+    } 
+    console.log(`FillingLevel ${elementsSet.fillingLevel()}`);
+    console.log(`PageCounter ${elementsSet.pageCounter}`);
+    
+
+    // if elementsSet.totalH <= elementsSet.quantityCard
+    if(elementsSet.pageCounter === elementsSet.fillingLevel() + 2 && elementsSet.totalH <= elementsSet.quantityCard) {
+
+      // temporery value for 63's row
+      elementsSet.temporary = elementsSet.fillingLevel();
+      
     }
 
+    console.log(`Temporary ${elementsSet.temporary}`);
         // control, when total quantity loaded images >= "data.totalHits"
     if(elementsSet.pageCounter > elementsSet.temporary) {
   
       elementsSet.quantityCard = 40;
       // reset property and output notification
-      checkData = 0;
+      // elementsSet.checkData = 0;
       elementsSet.key = false;
-      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
       elementsSet.simpleArray.instance.destroy();
-
+      Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+     
     } 
   }
   
   // if the request data isn't repeate
   else {
     elementsSet.key = true;
+    elementsSet.temporary = undefined;
     elementsSet.pageCounter = 1;
     elementsSet.checkData = data;
     elementsSet.scrollValue = 0;
@@ -186,17 +200,29 @@ function eventForm(evt) {
   // button event
   if(evt.target.getAttribute('type') === 'submit'){
     // validation
-    if(elementsSet.inputData !== "" && (!elementsSet.inputData.includes(" "))) {
-     
-      // elementsSet.inputForm.value = "";
-      request(elementsSet.inputData);
-
-    } else {
+    
+    if(elementsSet.inputData === "" && (!elementsSet.inputData.includes(" "))) {
 
       Notiflix.Notify.warning("Input must be filled and don't have spaces!");
+      
+    } else {
+
+      // elementsSet.inputForm.value = "";
+      request(elementsSet.inputData.trim());
 
     }
-        
+
+    // without 'trim'
+    // if(elementsSet.inputData !== "" && (!elementsSet.inputData.includes(" "))) {
+     
+      // elementsSet.inputForm.value = "";
+    //   request(elementsSet.inputData);
+
+    // } else {
+
+    //   Notiflix.Notify.warning("Input must be filled and don't have spaces!");
+
+    // }
   }
 }
 
